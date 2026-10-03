@@ -1,35 +1,6 @@
 (() => {
   "use strict";
 
-  const wordmark = document.querySelector("#wordmark");
-  const frame = document.querySelector(".artwork-frame");
-  const measureContext = document.createElement("canvas").getContext("2d");
-
-  function fitWordmark() {
-    if (!measureContext) return;
-    const frameStyle = getComputedStyle(frame);
-    const available = frame.clientWidth - parseFloat(frameStyle.paddingLeft) - parseFloat(frameStyle.paddingRight);
-    measureContext.font = `26px ${getComputedStyle(wordmark).fontFamily}`;
-    const widest = Math.max(...wordmark.textContent.split("\n").map(line => measureContext.measureText(line).width));
-    if (widest) wordmark.style.fontSize = `${Math.min(26, available / widest * 26)}px`;
-  }
-
-  fitWordmark();
-  window.addEventListener("resize", fitWordmark, { passive: true });
-  // 直接打开 HTML 时使用内嵌版本；通过网站访问时优先读取艺术字文件。
-  if (location.protocol !== "file:") {
-    fetch("KAMISATO.txt", { cache: "no-cache" })
-      .then(response => response.ok ? response.text() : "")
-      .then(text => {
-        const artwork = text.replace(/\r/g, "").split("\n").map(line => line.trimEnd()).join("\n").replace(/\n+$/, "");
-        if (artwork.trim() && artwork.length <= 20000) {
-          wordmark.textContent = artwork;
-          fitWordmark();
-        }
-      })
-      .catch(() => {});
-  }
-
   const canvas = document.querySelector("#pixel-field");
   const context = canvas.getContext("2d", { alpha: false });
   const motionToggle = document.querySelector("#motion-toggle");

@@ -12,9 +12,19 @@ python3 -m http.server 8000
 
 ## 页面
 
-- `KAMISATO.txt`：UTF-8 等宽艺术字。网站优先读取该文件，保留开头缩进，忽略行末空格；无法读取时使用 HTML 内嵌的同版艺术字。
+- `KAMISATO.txt`：UTF-8 艺术字源文件，保留供修改和重新生成。
+- `assets/kamisato-wordmark.svg`：由源文件转换成的字形轮廓。页面使用这个 SVG，图形不含 SVG 文本或外部字体引用，避免安卓字体回退造成方块字符缺失、错位。缩放由 CSS 完成，关闭 JavaScript 也能显示艺术字。
 - `styles.css`：深色布局，艺术字在页面上半部，密钥输入框在下半部，适配窄屏。
 - `script.js`：缓慢流动的像素背景、鼠标交互和口令校验。右下角按钮可以暂停背景；系统开启“减少动态效果”时默认暂停；后台标签页停止渲染。
+
+修改 `KAMISATO.txt` 后，重新生成 SVG 并一起发布：
+
+```sh
+python3 -m pip install -r tools/requirements.txt
+python3 tools/generate_wordmark.py
+```
+
+转换工具在 macOS 上默认使用 Menlo 字体轮廓；其他环境可以通过 `--font /path/to/font.ttf` 指定包含这些字符的字体。转换依赖只在生成时使用，网站运行无需安装字体或 Python 包。
 
 ## 静态入口口令
 
