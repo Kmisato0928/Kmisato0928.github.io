@@ -1,2 +1,81 @@
-<h1>Hello World</h1>
-<p>这是我的个人网站</p>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080b0b" />
+    <meta name="description" content="KAMISATO 的个人空间。" />
+    <title>KAMISATO — Welcome</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="site.config.js" defer></script>
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <canvas id="pixel-field" aria-hidden="true"></canvas>
+    <div class="background-grid" aria-hidden="true"></div>
+    <div class="background-shade" aria-hidden="true"></div>
+
+    <div class="welcome-page">
+      <main class="welcome-main">
+        <section class="identity" aria-labelledby="page-title">
+          <h1 class="visually-hidden" id="page-title">KAMISATO</h1>
+          <div class="artwork-frame" aria-hidden="true">
+            <span class="frame-corner corner-top-left"></span>
+            <span class="frame-corner corner-top-right"></span>
+            <pre id="wordmark" class="wordmark">██╗  ██╗ █████╗ ███╗   ███╗██╗███████╗ █████╗ ████████╗ ██████╗
+██║ ██╔╝██╔══██╗████╗ ████║██║██╔════╝██╔══██╗╚══██╔══╝██╔═══██╗
+█████╔╝ ███████║██╔████╔██║██║███████╗███████║   ██║   ██║   ██║
+██╔═██╗ ██╔══██║██║╚██╔╝██║██║╚════██║██╔══██║   ██║   ██║   ██║
+██║  ██╗██║  ██║██║ ╚═╝ ██║██║███████║██║  ██║   ██║   ╚██████╔╝
+╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚══════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝</pre>
+            <span class="frame-corner corner-bottom-left"></span>
+            <span class="frame-corner corner-bottom-right"></span>
+          </div>
+          <!--p class="welcome-caption">欢迎来到我的空间</p-->
+        </section>
+
+        <section class="entry" aria-labelledby="entry-label">
+          <form id="access-form" novalidate>
+            <label id="entry-label" class="entry-label" for="access-key">输入密钥，进入空间。</label>
+            <div class="key-row">
+              <div class="key-field">
+                <svg class="lock-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5" />
+                  <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                <input id="access-key" name="access-key" type="password" placeholder="输入你的访问密钥" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="256" required aria-describedby="entry-hint form-message" />
+              </div>
+              <button class="enter-button" type="submit" aria-label="验证密钥并进入">
+                <span class="enter-label">进入</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span class="button-spinner" aria-hidden="true"></span>
+              </button>
+            </div>
+            <div class="entry-meta" id="entry-hint">
+              <span class="keyboard-hint">按 <kbd>Enter</kbd> 继续 <span aria-hidden="true">↵</span></span>
+            </div>
+            <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+          </form>
+
+          <div id="unlocked-space" class="unlocked-space" hidden>
+            <span class="entry-label granted-label"><span class="status-dot"></span> ACCESS GRANTED</span>
+            <h2 id="unlocked-title" tabindex="-1">欢迎回来。</h2>
+            <p>空间正在构建中</p>
+            <button id="lock-space" class="lock-space" type="button">返回入口 <span aria-hidden="true">↗</span></button>
+          </div>
+          <noscript><p class="noscript-message">请启用 JavaScript 后继续。</p></noscript>
+        </section>
+      </main>
+
+      <footer class="page-footer">
+        <span class="copyright">© 2026 KAMISATO</span>
+        <button id="motion-toggle" class="motion-toggle" type="button" aria-label="暂停背景动画" aria-pressed="false" title="暂停背景动画">
+          <span class="motion-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        </button>
+      </footer>
+    </div>
+  </body>
+</html>
