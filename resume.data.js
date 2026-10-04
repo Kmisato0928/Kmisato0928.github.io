@@ -1,0 +1,137 @@
+// 网站展示资料：仅保留技术背景与项目经历，使用 KAMISATO 作为显示名。
+window.KAMISATO_RESUME = {
+  displayName: "KAMISATO",
+  focus: "C++ · 系统内核 · 逆向分析 · AI Agent",
+  summary: "计算机科学与技术本科在读。具备 Windows / Linux 开发与 Android GKI 内核模块实践经验，围绕系统安全、驱动调试、应用隔离和本地 Agent Harness 开展项目开发。",
+  facts: [
+    { label: "开发语言", value: "C++ / Python" },
+    { label: "平台与架构", value: "Windows / Linux / Android · x86_64 / ARM64" },
+    { label: "工程实践", value: "应用隔离 · 驱动调试 · Agent Harness" },
+  ],
+  skillGroups: [
+    {
+      title: "C++ 开发",
+      description: "掌握移动语义、智能指针等现代 C++ 特性，熟悉多线程与并发编程、面向对象机制以及 STL 容器的底层数据结构。具备 x86_64 架构下的 Windows 与 Linux 开发经验。",
+      items: ["现代 C++", "移动语义", "智能指针", "STL", "多线程与并发", "x86_64"],
+    },
+    {
+      title: "Windows 安全与驱动开发",
+      description: "掌握 R3 / R0 通信与 minifilter 过滤驱动架构，熟悉 Zw / Nt 系统调用过程，能够使用 WinDbg 双机调试。研读 InfinityHook、Detours、EasyHook、MinHook 源码，具备 API Hook、EPT 与代码注入相关实践。",
+      items: ["WinDbg", "minifilter", "R3 / R0", "API Hook", "EPT", "Windows 内核"],
+    },
+    {
+      title: "Android 安全与驱动开发",
+      description: "具备 Android NDK、GKI 内核与驱动模块开发经验，能够使用 Unidbg、GDB、KDB 开展调试分析。熟悉注入、bHook、Hide Hook、KernelPatch 等技术，具备 Kprobe / Uprobe 动态追踪经验，理解 PAC、CFI 与 SELinux 安全机制。",
+      items: ["Android NDK", "GKI", "ARM64", "Kprobe / Uprobe", "GDB / KDB", "PAC / CFI / SELinux"],
+    },
+    {
+      title: "PC 与移动端逆向分析",
+      description: "熟悉 PE / ELF 文件结构及 Windows / Linux 内存管理，能够结合 IDA、Jadx 进行静态分析，使用 Frida、x64dbg 开展动态调试，并编写 Python 分析脚本。理解 VMP、UPX 与加固原理，具备代码混淆、反调试和反 Hook 分析经验。",
+      items: ["IDA", "Jadx", "Frida", "x64dbg", "PE / ELF", "Python", "VMP / UPX"],
+    },
+    {
+      title: "AI Agent 与智能化开发",
+      description: "熟悉 ReAct 智能体逻辑、多 Agent 协作与黑板模式，掌握 MCP、Skill、RAG、Context Engineering 和 Agent 评测的基础方案。理解混合检索、上下文压缩、Prompt Injection 防护与可验证验收，研读 Deer-Flow 等 Agent Harness 框架，使用 Codex、Claude Code 辅助逆向与自动化测试。",
+      items: ["ReAct", "MCP / Skill", "RAG", "Context Engineering", "多 Agent 协作", "Agent 评测", "Deer-Flow"],
+    },
+  ],
+  projects: [
+    {
+      category: "个人项目",
+      name: "Local Agent-Harness Scheduler",
+      period: "2026.01 至今",
+      role: "个人项目",
+      description: "基于 Python 自研本地 Agent Harness，采用 Lead Agent + ReAct + SQLite 黑板架构，面向代码审查、分析与研发协作，实现可控的多 Agent 任务执行。",
+      technologies: ["Python", "ReAct", "SQLite", "Agent Harness", "Context Engineering"],
+      highlights: [
+        "实现链路追踪与状态机，让调度器依据实际执行状态管理协作流程。",
+        "通过结构化保留、语义摘要和原始证据回查完成上下文压缩。",
+        "在单轮任务执行后进行可验证验收，并明确输入的信任边界。",
+        "区分 Sandbox 软约束与硬隔离边界，减少多 Agent 的可写冲突。",
+      ],
+    },
+    {
+      category: "个人项目",
+      name: "Windows 应用虚拟化隔离沙箱",
+      period: "2025.07 - 2026.01",
+      role: "团队项目 · 组长",
+      description: "围绕传统沙箱易被特征识别、Hook 引擎在多线程环境下不稳定、资源隔离不彻底等问题，设计并实现基于应用虚拟化技术的轻量级沙箱系统。",
+      technologies: ["Windows", "内核驱动", "API Hook", "minifilter", "应用虚拟化"],
+      highlights: [
+        "利用内核驱动回调机制监控系统进程启动。",
+        "通过底层 API Hook 构建虚拟文件系统，结合过滤驱动隐藏关键文件。",
+        "拦截命名对象的创建与访问流程，隔离沙箱内进程与外部环境，支持应用双开。",
+        "介入进程初始化流程，对指定父子进程实现精准隔离。",
+      ],
+    },
+    {
+      category: "个人项目",
+      name: "Android Dual-State Hooking",
+      period: "2026.01 - 2026.05",
+      role: "个人项目",
+      description: "围绕 Android 用户态注入与 Hook 引擎开展实现与验证，结合已有 Hook 方案并自研 PTE Hook。",
+      technologies: ["Android", "ptrace", "Zygote", "ELF", "bHook / ShadowHook", "PTE Hook"],
+      highlights: [
+        "实现 ptrace、Zygote 与 ELF 文件感染三类用户态注入路径。",
+        "结合 bHook 与 ShadowHook 的实现方式构建用户态 Hook 引擎。",
+        "完成自研 PTE Hook 实现。",
+      ],
+    },
+    {
+      category: "个人项目",
+      name: "InjectorArsenal 攻防系统",
+      period: "2024.10 - 2025.07",
+      role: "个人项目",
+      description: "实现面向系统安全研究的代码注入与拦截引擎，覆盖用户态和内核态的多种技术路径。",
+      technologies: ["代码注入", "内核 APC", "反射注入", "InfinityHook", "SSDT / IDT Hook"],
+      highlights: [
+        "实现基础注入、内核 APC 注入与无文件落地的反射注入。",
+        "完成 InfinityHook、SSDT Hook 与 IDT Hook 的实现。",
+        "对 PatchGuard 绕过进行测试性验证。",
+      ],
+    },
+    {
+      category: "实习研发",
+      name: "Android 驱动读写行为监控",
+      period: "2026.05 - 2026.08",
+      role: "腾讯科技 · 实习研发 · 自研",
+      description: "面向反外挂场景，通过 ARM64 内核页表克隆与 TTBR1_EL1 切换，构建独立 Shadow 页表执行环境，监控黑盒目标驱动的执行流和内存访问行为。目标驱动内存读写行为覆盖率达到 95%。",
+      technologies: ["ARM64", "Shadow 页表", "TTBR1_EL1", "页表陷阱", "单步调试"],
+      highlights: [
+        "克隆内核页表并切换 TTBR1_EL1，使目标驱动在 Shadow 执行环境中透明运行并捕获异常。",
+        "基于页表陷阱与单步调试，实现执行路径的指令级观测、记录与回放分析。",
+        "覆盖 API 调用、别名映射与线性映射区直接访问三类内存操作路径。",
+      ],
+    },
+    {
+      category: "实习研发",
+      name: "ARM64 内核驱动调试器",
+      period: "2026.05 - 2026.08",
+      role: "腾讯科技 · 实习研发 · 自研",
+      description: "支持在内核模块的指定指令地址设置断点，提供单步、多步与 Autopath 自动执行能力，记录目标模块的真实运行路径，辅助逆向分析。",
+      technologies: ["ARM64", "BRK", "pt_regs", "PC 重定向", "Trace"],
+      highlights: [
+        "支持软件断点、完整寄存器快照、继续执行与单步调试。",
+        "结合 BRK 异常、pt_regs 保存恢复与 PC 重定向，将异常上下文安全转移至进程上下文，实现目标线程停车与恢复。",
+        "采集完整通用寄存器上下文，并输出可持久化的执行 Trace。",
+      ],
+    },
+    {
+      category: "实习研发",
+      name: "Android 内核态沙箱原型",
+      period: "2026.05 - 2026.08",
+      role: "腾讯科技 · 实习研发 · 自研原型",
+      description: "基于已有 Windows 沙箱项目，完成 Android 内核态沙箱原型的初步搭建。",
+      technologies: ["Android", "内核模块", "沙箱原型"],
+      highlights: [],
+    },
+  ],
+  education: [
+    {
+      school: "长安大学",
+      degree: "本科 · 计算机科学与技术（卓越工程师）",
+      period: "2023.09 - 2027.06",
+      description: "主要课程：C++ 面向对象程序设计、计算机网络、计算机系统结构、编译原理、操作系统、数据库与人工智能。",
+    },
+  ],
+};

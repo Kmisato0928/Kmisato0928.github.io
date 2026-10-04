@@ -111,18 +111,20 @@
   const field = document.querySelector(".key-field");
   const submit = document.querySelector(".enter-button");
   const message = document.querySelector("#form-message");
-  const unlocked = document.querySelector("#unlocked-space");
+  const welcome = document.querySelector(".welcome-page");
+  const workspace = document.querySelector("#workspace");
   const config = window.KAMISATO_CONFIG || {};
   const sessionKey = "kamisato.access";
 
   function showMessage(text) { message.textContent = text; }
 
   function setUnlocked(isUnlocked, focus = false) {
-    form.hidden = isUnlocked;
-    unlocked.hidden = !isUnlocked;
-    document.querySelector(".entry").setAttribute("aria-labelledby", isUnlocked ? "unlocked-title" : "entry-label");
+    welcome.hidden = isUnlocked;
+    workspace.hidden = !isUnlocked;
+    document.body.classList.toggle("workspace-open", isUnlocked);
     document.title = isUnlocked ? "KAMISATO — My Space" : "KAMISATO — Welcome";
-    if (focus) document.querySelector(isUnlocked ? "#unlocked-title" : "#access-key").focus();
+    document.dispatchEvent(new CustomEvent("kamisato:access-change", { detail: { unlocked: isUnlocked } }));
+    if (focus) document.querySelector(isUnlocked ? "#workspace-title" : "#access-key").focus();
   }
 
   // 只保留本标签页的解锁状态，不存储输入的明文口令。

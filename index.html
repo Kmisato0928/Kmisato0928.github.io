@@ -8,8 +8,11 @@
     <title>KAMISATO — Welcome</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="stylesheet" href="workspace.css?v=3" />
     <script src="site.config.js" defer></script>
-    <script src="script.js?v=2" defer></script>
+    <script src="script.js?v=3" defer></script>
+    <script src="resume.data.js?v=3" defer></script>
+    <script src="workspace.js?v=3" defer></script>
   </head>
   <body>
     <canvas id="pixel-field" aria-hidden="true"></canvas>
@@ -55,12 +58,6 @@
             <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
           </form>
 
-          <div id="unlocked-space" class="unlocked-space" hidden>
-            <span class="entry-label granted-label"><span class="status-dot"></span> ACCESS GRANTED</span>
-            <h2 id="unlocked-title" tabindex="-1">欢迎回来。</h2>
-            <p>空间正在构建中</p>
-            <button id="lock-space" class="lock-space" type="button">返回入口 <span aria-hidden="true">↗</span></button>
-          </div>
           <noscript><p class="noscript-message">请启用 JavaScript 后继续。</p></noscript>
         </section>
       </main>
@@ -71,6 +68,99 @@
           <span class="motion-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
         </button>
       </footer>
+    </div>
+
+    <svg class="icon-definitions" width="0" height="0" aria-hidden="true" focusable="false">
+      <defs>
+        <symbol id="icon-resume" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></symbol>
+        <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-3 2V11.5A8.5 8.5 0 0 1 10.5 3h2a8.5 8.5 0 0 1 8.5 8.5Z"/><path d="M7 10h10M7 14h6"/></symbol>
+        <symbol id="icon-panel" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M5.5 8h1M5.5 12h1"/></symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+        <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+        <symbol id="icon-send" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+        <symbol id="icon-motion" viewBox="0 0 24 24"><path d="M5 9v6M10 5v14M15 8v8M20 10v4"/></symbol>
+        <symbol id="icon-logout" viewBox="0 0 24 24"><path d="M10 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h5M9 12h12m-4-4 4 4-4 4"/></symbol>
+        <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+        <symbol id="icon-terminal" viewBox="0 0 24 24"><path d="m5 7 5 5-5 5M13 17h6"/></symbol>
+      </defs>
+    </svg>
+
+    <div id="workspace" class="workspace" hidden>
+      <nav id="workspace-rail" class="workspace-rail" aria-label="页面选择">
+        <div class="rail-pages">
+          <button type="button" class="rail-button is-active" data-workspace-view="resume" aria-pressed="true" title="个人简历">
+            <svg class="ws-icon" aria-hidden="true"><use href="#icon-resume"/></svg><span>简历</span>
+          </button>
+          <button type="button" class="rail-button" data-workspace-view="chat" aria-pressed="false" title="问答工作台">
+            <svg class="ws-icon" aria-hidden="true"><use href="#icon-chat"/></svg><span>问答</span>
+          </button>
+        </div>
+        <div class="rail-bottom">
+          <button id="workspace-motion" type="button" class="rail-button rail-utility" aria-label="暂停背景动画" aria-pressed="false" title="暂停背景动画"><svg class="ws-icon" aria-hidden="true"><use href="#icon-motion"/></svg></button>
+          <button id="lock-space" type="button" class="rail-button rail-utility" aria-label="返回欢迎页" title="返回欢迎页"><svg class="ws-icon" aria-hidden="true"><use href="#icon-logout"/></svg></button>
+        </div>
+      </nav>
+
+      <div class="workspace-body">
+        <header id="workspace-header" class="workspace-header">
+          <div class="workspace-breadcrumb"><h1 id="workspace-title" tabindex="-1">个人简历</h1></div>
+          <div id="chat-actions" class="workspace-actions" hidden>
+            <button id="new-conversation" class="ws-button" type="button" title="新对话"><svg class="ws-icon" aria-hidden="true"><use href="#icon-plus"/></svg><span>新对话</span></button>
+            <button id="connection-toggle" class="ws-button" type="button" aria-controls="connection-panel" aria-expanded="true" title="连接配置"><svg class="ws-icon" aria-hidden="true"><use href="#icon-panel"/></svg><span>连接配置</span></button>
+          </div>
+        </header>
+
+        <section id="resume-view" class="resume-layout" aria-label="个人简历">
+          <aside class="resume-sidebar" aria-label="简历分类">
+            <div class="resume-sidebar-heading"><h2>简历目录</h2></div>
+            <nav class="resume-categories" aria-label="选择简历模块">
+              <button type="button" data-resume-section="overview" class="category-button is-active" aria-pressed="true"><span class="category-index">01</span><span>个人简介</span><span class="category-arrow" aria-hidden="true">↗</span></button>
+              <button type="button" data-resume-section="skills" class="category-button" aria-pressed="false"><span class="category-index">02</span><span>个人技能</span><span class="category-arrow" aria-hidden="true">↗</span></button>
+              <button type="button" data-resume-section="projects" class="category-button" aria-pressed="false"><span class="category-index">03</span><span>项目开发</span><span class="category-arrow" aria-hidden="true">↗</span></button>
+              <button type="button" data-resume-section="education" class="category-button" aria-pressed="false"><span class="category-index">04</span><span>教育经历</span><span class="category-arrow" aria-hidden="true">↗</span></button>
+            </nav>
+          </aside>
+          <main id="resume-content" class="resume-content" tabindex="-1"></main>
+        </section>
+
+        <section id="chat-view" class="chat-layout" aria-label="问答工作台" hidden>
+          <button id="connection-backdrop" class="connection-backdrop" type="button" aria-label="关闭连接配置" tabindex="-1" hidden></button>
+          <aside id="connection-panel" class="connection-panel" aria-label="连接配置">
+            <div class="connection-heading"><h2>连接配置</h2><button id="connection-close" type="button" class="ws-icon-button" aria-label="收起连接配置"><svg class="ws-icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
+            <form id="connection-form" class="connection-form">
+              <fieldset class="connection-mode"><legend class="visually-hidden">连接方式</legend><label><input type="radio" name="connection-mode" value="demo" checked/><span>演示模式</span></label><label><input type="radio" name="connection-mode" value="remote"/><span>远程 Mac</span></label></fieldset>
+              <div id="connection-status" class="connection-status" role="status"><span class="status-dot"></span><span>演示模式</span></div>
+              <label class="config-label" for="service-url">服务地址</label>
+              <input id="service-url" class="config-input" type="url" placeholder="https://api.kamisato.me" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="service-url-hint"/>
+              <p id="service-url-hint" class="visually-hidden">填写远程 Mac 服务的 HTTPS 地址。</p>
+              <label class="config-label" for="service-key">访问密钥</label>
+              <div class="config-secret"><input id="service-key" class="config-input" type="password" placeholder="输入服务访问密钥" autocomplete="off" spellcheck="false" autocapitalize="off"/><button id="service-key-toggle" type="button" aria-label="显示访问密钥" aria-pressed="false">显示</button></div>
+              <p class="config-hint">密钥刷新后清除。</p>
+              <button class="ws-button config-save" type="submit">保存配置<svg class="ws-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+              <p id="connection-message" class="connection-message" role="status" aria-live="polite"></p>
+            </form>
+          </aside>
+
+          <main id="chat-main" class="chat-main">
+            <div id="conversation-scroll" class="conversation-scroll">
+              <div id="chat-empty" class="chat-empty">
+                <h2>输入你的问题。</h2>
+              </div>
+              <div id="conversation" class="conversation" role="log" aria-label="问题与回答" aria-live="polite" aria-relevant="additions text"></div>
+            </div>
+            <div class="composer-area">
+              <form id="question-form" class="question-form">
+                <label class="visually-hidden" for="question-input">输入问题</label><textarea id="question-input" rows="2" placeholder="输入你的问题…" maxlength="6000" aria-describedby="composer-hint"></textarea>
+                <div class="composer-toolbar"><span id="composer-mode" class="composer-mode"><span class="status-dot"></span>演示模式</span><div class="composer-controls"><span id="composer-hint" class="composer-hint">Enter 发送 · Shift + Enter 换行</span><button id="question-send" type="submit" class="question-send" aria-label="发送问题" disabled><svg class="ws-icon send-glyph" aria-hidden="true"><use href="#icon-send"/></svg><span class="stop-glyph" aria-hidden="true"></span></button></div></div>
+              </form>
+              <p id="chat-notice" class="chat-notice" role="status">演示回答，不调用远程服务。</p>
+            </div>
+          </main>
+        </section>
+      </div>
+      <div id="workspace-toast" class="workspace-toast" role="status" aria-live="polite" hidden></div>
     </div>
   </body>
 </html>

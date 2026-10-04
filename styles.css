@@ -74,14 +74,6 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 .button-spinner { display: none; width: 21px; height: 21px; border: 2px solid #05140c30; border-top-color: #05140c; border-radius: 50%; animation: spin .8s linear infinite; }
 form[aria-busy="true"] .arrow-icon, form[aria-busy="true"] .enter-label { display: none; }
 form[aria-busy="true"] .button-spinner { display: block; }
-.unlocked-space { max-width: 450px; margin-inline: auto; border-left: 1px solid #8bf0be50; padding: 3px 0 3px 23px; }
-.granted-label { color: var(--accent); font-size: 9px; }
-.granted-label .status-dot { margin-right: 5px; vertical-align: middle; }
-.unlocked-space h2 { margin: 0; font-size: 26px; font-weight: 400; letter-spacing: 2px; outline: none; }
-.unlocked-space p { margin: 12px 0 22px; color: #73877b; font-size: 11px; letter-spacing: 2px; }
-.lock-space { padding: 0; border: 0; background: transparent; color: #98ae9f; font-size: 10px; letter-spacing: 1px; }
-.lock-space span { padding-left: 6px; color: var(--accent); }
-.lock-space:hover { color: var(--accent); }
 .noscript-message { color: #cbb69c; font-size: 12px; }
 
 .page-footer { bottom: 28px; }
