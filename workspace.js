@@ -7,6 +7,7 @@
   const title = document.querySelector("#workspace-title");
   const resumeContent = document.querySelector("#resume-content");
   const resume = window.KAMISATO_RESUME;
+  const ragDemo = window.KAMISATO_DEMO;
   const mobile = window.matchMedia("(max-width: 760px)");
   const panel = document.querySelector("#connection-panel");
   const panelToggle = document.querySelector("#connection-toggle");
@@ -18,6 +19,7 @@
   const conversation = document.querySelector("#conversation");
   const conversationScroll = document.querySelector("#conversation-scroll");
   const emptyChat = document.querySelector("#chat-empty");
+  const demoQuestion = document.querySelector("#rag-demo-question");
   const serviceUrl = document.querySelector("#service-url");
   const serviceKey = document.querySelector("#service-key");
   const keyToggle = document.querySelector("#service-key-toggle");
@@ -30,6 +32,7 @@
   let connectionMode = "demo";
   let pendingReply = null;
   let toastTimer = null;
+  let messageSequence = 0;
 
   function element(tag, className, text) {
     const item = document.createElement(tag);
@@ -212,7 +215,7 @@
     const busy = Boolean(pendingReply);
     sendButton.disabled = !busy && (connectionMode !== "demo" || !questionInput.value.trim());
     sendButton.dataset.busy = String(busy);
-    sendButton.setAttribute("aria-label", busy ? "停止生成演示回答" : "发送问题");
+    sendButton.setAttribute("aria-label", busy ? "停止生成回答" : "发送问题");
     questionForm.setAttribute("aria-busy", String(busy));
   }
 
@@ -228,7 +231,7 @@
     clearTimeout(pendingReply.timer);
     if (markStopped) {
       pendingReply.article.classList.remove("is-pending");
-      pendingReply.content.textContent = "已停止生成演示回答。";
+      pendingReply.content.textContent = "已停止生成。";
     }
     pendingReply = null;
     conversation.setAttribute("aria-busy", "false");
@@ -240,13 +243,14 @@
     const remote = connectionMode === "remote";
     const status = document.querySelector("#connection-status");
     status.dataset.mode = connectionMode;
-    status.lastElementChild.textContent = remote ? "未连接 · 服务待接入" : "演示模式";
+    status.lastElementChild.textContent = remote ? "未连接" : "笔记问答";
     const mode = document.querySelector("#composer-mode");
     mode.dataset.mode = connectionMode;
-    mode.replaceChildren(element("span", "status-dot"), document.createTextNode(remote ? "远程 Mac · 未连接" : "演示模式"));
+    mode.replaceChildren(element("span", "status-dot"), document.createTextNode(remote ? "远程 Mac · 未连接" : "项目笔记"));
     questionInput.disabled = remote;
-    questionInput.placeholder = remote ? "远程服务尚未接入，请先切换演示模式。" : "输入你的问题…";
-    document.querySelector("#chat-notice").textContent = remote ? "远程服务尚未接入。" : "演示回答，不调用远程服务。";
+    demoQuestion.hidden = remote || !ragDemo;
+    questionInput.placeholder = remote ? "远程服务未连接，请切换笔记问答。" : "输入你的问题…";
+    document.querySelector("#chat-notice").textContent = remote ? "远程服务未连接。" : "";
     updateSendButton();
   }
 
@@ -276,7 +280,7 @@
     }
     serviceUrl.value = address;
     // 当前仅搭建前端。配置留在表单内存中，不持久化、不发送网络请求。
-    connectionMessage.textContent = connectionMode === "remote" ? "配置已保留于当前页面，尚未建立远程连接。" : "演示模式已就绪。配置仅保留在当前页面。";
+    connectionMessage.textContent = connectionMode === "remote" ? "配置已保存，尚未建立远程连接。" : "已选择笔记问答。";
     notify("配置已保存到当前页面");
   });
   keyToggle.addEventListener("click", () => {
@@ -289,18 +293,19 @@
 
   function addMessage(role, text) {
     const article = element("article", "chat-message is-" + role);
+    article.id = "chat-message-" + (++messageSequence);
     const heading = element("div", "message-heading");
     if (role === "assistant") heading.append(element("span", "message-avatar", "K"));
     heading.append(element("span", "message-label", role === "user" ? "你" : "KAMISATO"));
-    if (role === "assistant") heading.append(element("span", "message-badge", "演示回答"));
-    const content = element("p", "message-content", text);
+    if (role === "assistant") heading.append(element("span", "message-badge", ""));
+    const content = element("div", "message-content", text);
     article.append(heading, content);
     conversation.append(article);
     emptyChat.hidden = true;
     return { article, content };
   }
 
-  function addCopyButton(article, content) {
+  function addCopyButton(article, content, copyText = content.textContent) {
     const footer = element("div", "message-footer");
     const button = element("button", "message-copy");
     const label = element("span", "", "复制回答");
@@ -308,7 +313,7 @@
     button.append(icon("copy"), label);
     button.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(content.textContent);
+        await navigator.clipboard.writeText(copyText);
         label.textContent = "已复制";
         setTimeout(() => { if (button.isConnected) label.textContent = "复制回答"; }, 2000);
       } catch { notify("无法复制，请选中回答文字复制。"); }
@@ -317,10 +322,96 @@
     article.append(footer);
   }
 
+  function isRagDemoQuestion(question) {
+    return Boolean(ragDemo) && /shadow[\s_-]*box|shadow\s*空间/i.test(question) && /三种|三条|监控|方案|模式|创建/.test(question);
+  }
+
+  function renderRagDemo(reply, question) {
+    const content = reply.content;
+    const corrected = /创建/.test(question);
+    content.classList.add("rag-answer");
+    content.replaceChildren();
+    reply.article.querySelector(".message-badge").textContent = "笔记问答";
+
+    const provenance = element("div", "rag-provenance");
+    provenance.append(element("span", "rag-provenance-label", "基于项目笔记"), element("span", "rag-status", ragDemo.status));
+    content.append(provenance, element("h2", "rag-title", ragDemo.title));
+    if (corrected) content.append(element("p", "rag-clarification", ragDemo.clarification));
+    content.append(element("p", "rag-summary", ragDemo.summary));
+
+    const sources = element("details", "rag-sources");
+    sources.append(element("summary", "", ragDemo.document + " › " + ragDemo.section + " · 3 个出处"));
+    const sourceList = element("ol", "rag-source-list");
+    sources.append(sourceList);
+    const table = element("table", "rag-comparison");
+    table.setAttribute("aria-label", "三种内存监控方案的机制与覆盖边界对比");
+    const head = element("thead");
+    const headings = element("tr");
+    ["监控方案", "触发机制", "覆盖边界"].forEach(text => {
+      const heading = element("th", "", text);
+      heading.scope = "col";
+      headings.append(heading);
+    });
+    head.append(headings);
+    const body = element("tbody");
+    table.append(head, body);
+
+    ragDemo.methods.forEach((method, index) => {
+      const number = index + 1;
+      const source = element("li", "rag-source-item");
+      source.id = reply.article.id + "-source-" + number;
+      source.append(element("h3", "", method.source), element("p", "", method.excerpt));
+      sourceList.append(source);
+
+      const row = element("tr");
+      const name = element("th", "rag-method");
+      name.scope = "row";
+      const reference = element("button", "rag-citation", "[" + number + "]");
+      reference.type = "button";
+      reference.setAttribute("aria-label", "查看笔记出处：" + method.source);
+      reference.setAttribute("aria-controls", source.id);
+      reference.addEventListener("click", () => {
+        sources.open = true;
+        source.scrollIntoView({ block: "nearest" });
+      });
+      name.append(element("span", "rag-method-name", method.title), reference);
+      const mechanism = element("td", "rag-mechanism");
+      mechanism.dataset.label = "触发机制";
+      mechanism.append(element("p", "", method.mechanism), element("p", "rag-code", method.examples));
+      const boundary = element("td", "rag-boundary", method.boundary);
+      boundary.dataset.label = "覆盖边界";
+      row.append(name, mechanism, boundary);
+      body.append(row);
+    });
+
+    content.append(table, element("p", "rag-takeaway", ragDemo.takeaway), element("p", "rag-glossary", ragDemo.glossary), sources);
+    sources.append(element("p", "rag-source-status", "章节状态原文：“" + ragDemo.statusEvidence + "”"));
+
+    // 单独提供有段落分隔的复制文本，避免表格 DOM 的 textContent 连成一串。
+    const copyText = [
+      ragDemo.title,
+      ...(corrected ? [ragDemo.clarification] : []),
+      ragDemo.summary,
+      "实现状态：" + ragDemo.status,
+      ...ragDemo.methods.map((method, index) => [
+        (index + 1) + ". " + method.title + " [" + (index + 1) + "]",
+        "触发机制：" + method.mechanism,
+        "示例：" + method.examples,
+        "覆盖边界：" + method.boundary,
+      ].join("\n")),
+      ragDemo.takeaway,
+      ragDemo.glossary,
+      "来源：" + ragDemo.document + " › " + ragDemo.section,
+      ...ragDemo.methods.map((method, index) => "[" + (index + 1) + "] " + method.source + "\n" + method.excerpt),
+      "章节状态原文：“" + ragDemo.statusEvidence + "”",
+    ].join("\n\n");
+    addCopyButton(reply.article, content, copyText);
+  }
+
   function demoAnswer(question) {
     if (/项目|复盘/.test(question)) return "可以按下面五个部分整理项目复盘：\n\n01  背景与目标\n为什么做这个项目？希望解决什么问题？\n\n02  方案与取舍\n采用了什么技术方案？为什么这样选择？\n\n03  你的贡献\n你具体负责什么？解决了哪些关键问题？\n\n04  结果与证据\n展示实际效果，并补充可验证的数据或作品。\n\n05  收获与改进\n哪些方法值得保留？下一次会怎样做得更好？";
-    if (/工作台|介绍|功能/.test(question)) return "这是你的个人问答工作台。\n\n在中间输入问题，回答会显示在当前对话中。你可以复制回答，也可以用右上角的“新对话”重新开始。\n\n左侧的连接配置可以收起，手机上默认隐藏。远程服务接入后，这里将负责连接你的 Mac。\n\n当前使用演示模式：所有回答都由页面本地生成，没有调用真实 API。";
-    return "已收到你的问题。\n\n这是一条演示回答，用于体验问题提交、等待、结果展示与复制的完整流程。\n\n目前不会连接远程 Mac 或调用真实 API。远程服务接入后，你提出的问题会交给 Mac 处理，真实结果再显示在这里。";
+    if (/工作台|介绍|功能/.test(question)) return "这是你的个人问答工作台。\n\n在中间输入问题，回答会显示在当前对话中。支持停止生成、复制回答与新建对话；笔记问答可以展开引用，查看对应的项目笔记内容。\n\n左侧连接配置可以收起，手机上默认隐藏。";
+    return "当前笔记问答收录了 ShadowBox 内存读写监控的专题内容。\n\n可以提问：ShadowBox 的 shadow 空间有哪些内存读写监控方案？请比较触发机制与覆盖边界，并说明实现状态。";
   }
 
   function sendQuestion() {
@@ -330,7 +421,8 @@
     addMessage("user", question);
     questionInput.value = "";
     sizeComposer();
-    const reply = addMessage("assistant", "正在生成演示回答…");
+    const isRagDemo = isRagDemoQuestion(question);
+    const reply = addMessage("assistant", "正在整理回答…");
     reply.article.classList.add("is-pending");
     conversation.setAttribute("aria-busy", "true");
     const job = { article: reply.article, content: reply.content, timer: null };
@@ -338,17 +430,30 @@
     job.timer = setTimeout(() => {
       if (pendingReply !== job) return;
       reply.article.classList.remove("is-pending");
-      reply.content.textContent = demoAnswer(question);
-      addCopyButton(reply.article, reply.content);
+      if (isRagDemo) renderRagDemo(reply, question);
+      else {
+        reply.content.textContent = demoAnswer(question);
+        addCopyButton(reply.article, reply.content);
+      }
       pendingReply = null;
       conversation.setAttribute("aria-busy", "false");
       updateSendButton();
-      scrollConversation();
+      // 笔记回答较长，完成后保留问题和回答开头，便于阅读与截图。
+      if (isRagDemo) reply.article.previousElementSibling.scrollIntoView({ block: "start" });
+      else scrollConversation();
     }, 1100);
     updateSendButton();
     scrollConversation();
     questionInput.focus();
   }
+
+  demoQuestion.addEventListener("click", () => {
+    if (connectionMode !== "demo" || pendingReply || !ragDemo) return;
+    questionInput.value = ragDemo.question;
+    sizeComposer();
+    updateSendButton();
+    questionInput.focus();
+  });
 
   questionForm.addEventListener("submit", event => {
     event.preventDefault();

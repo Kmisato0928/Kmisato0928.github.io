@@ -8,11 +8,12 @@
     <title>KAMISATO — Welcome</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css?v=2" />
-    <link rel="stylesheet" href="workspace.css?v=3" />
+    <link rel="stylesheet" href="workspace.css?v=6" />
     <script src="site.config.js" defer></script>
     <script src="script.js?v=3" defer></script>
     <script src="resume.data.js?v=3" defer></script>
-    <script src="workspace.js?v=3" defer></script>
+    <script src="demo.data.js?v=1" defer></script>
+    <script src="workspace.js?v=5" defer></script>
   </head>
   <body>
     <canvas id="pixel-field" aria-hidden="true"></canvas>
@@ -130,8 +131,8 @@
           <aside id="connection-panel" class="connection-panel" aria-label="连接配置">
             <div class="connection-heading"><h2>连接配置</h2><button id="connection-close" type="button" class="ws-icon-button" aria-label="收起连接配置"><svg class="ws-icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
             <form id="connection-form" class="connection-form">
-              <fieldset class="connection-mode"><legend class="visually-hidden">连接方式</legend><label><input type="radio" name="connection-mode" value="demo" checked/><span>演示模式</span></label><label><input type="radio" name="connection-mode" value="remote"/><span>远程 Mac</span></label></fieldset>
-              <div id="connection-status" class="connection-status" role="status"><span class="status-dot"></span><span>演示模式</span></div>
+              <fieldset class="connection-mode"><legend class="visually-hidden">连接方式</legend><label><input type="radio" name="connection-mode" value="demo" checked/><span>笔记问答</span></label><label><input type="radio" name="connection-mode" value="remote"/><span>远程 Mac</span></label></fieldset>
+              <div id="connection-status" class="connection-status" role="status"><span class="status-dot"></span><span>笔记问答</span></div>
               <label class="config-label" for="service-url">服务地址</label>
               <input id="service-url" class="config-input" type="url" placeholder="https://api.kamisato.me" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="service-url-hint"/>
               <p id="service-url-hint" class="visually-hidden">填写远程 Mac 服务的 HTTPS 地址。</p>
@@ -147,15 +148,16 @@
             <div id="conversation-scroll" class="conversation-scroll">
               <div id="chat-empty" class="chat-empty">
                 <h2>输入你的问题。</h2>
+                <button id="rag-demo-question" class="ws-button demo-question" type="button" title="使用这个问题"><span>ShadowBox · 内存读写监控</span><svg class="ws-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
               </div>
               <div id="conversation" class="conversation" role="log" aria-label="问题与回答" aria-live="polite" aria-relevant="additions text"></div>
             </div>
             <div class="composer-area">
               <form id="question-form" class="question-form">
-                <label class="visually-hidden" for="question-input">输入问题</label><textarea id="question-input" rows="2" placeholder="输入你的问题…" maxlength="6000" aria-describedby="composer-hint"></textarea>
-                <div class="composer-toolbar"><span id="composer-mode" class="composer-mode"><span class="status-dot"></span>演示模式</span><div class="composer-controls"><span id="composer-hint" class="composer-hint">Enter 发送 · Shift + Enter 换行</span><button id="question-send" type="submit" class="question-send" aria-label="发送问题" disabled><svg class="ws-icon send-glyph" aria-hidden="true"><use href="#icon-send"/></svg><span class="stop-glyph" aria-hidden="true"></span></button></div></div>
+                <label class="visually-hidden" for="question-input">输入问题</label><textarea id="question-input" rows="1" placeholder="输入你的问题…" maxlength="6000" aria-describedby="composer-hint"></textarea>
+                <div class="composer-toolbar"><span id="composer-mode" class="composer-mode"><span class="status-dot"></span>项目笔记</span><div class="composer-controls"><span id="composer-hint" class="composer-hint">Enter 发送 · Shift + Enter 换行</span><button id="question-send" type="submit" class="question-send" aria-label="发送问题" disabled><svg class="ws-icon send-glyph" aria-hidden="true"><use href="#icon-send"/></svg><span class="stop-glyph" aria-hidden="true"></span></button></div></div>
               </form>
-              <p id="chat-notice" class="chat-notice" role="status">演示回答，不调用远程服务。</p>
+              <p id="chat-notice" class="chat-notice" role="status"></p>
             </div>
           </main>
         </section>

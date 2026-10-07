@@ -116,8 +116,9 @@
 .connection-message:empty { display: none; }
 .chat-main { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
 .conversation-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-.chat-empty { display: flex; align-items: center; width: min(880px, 100%); min-height: 100%; margin: 0 auto; padding: 48px 40px; }
+.chat-empty { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; width: min(880px, 100%); min-height: 100%; margin: 0 auto; padding: 48px 40px; }
 .chat-empty h2 { margin: 0; color: #edf2ef; font-size: clamp(34px, 4vw, 54px); font-weight: 500; line-height: 1.4; letter-spacing: -1px; }
+.demo-question { max-width: 100%; white-space: normal; text-align: left; }
 .conversation { width: min(880px, 100%); margin: 0 auto; padding: 36px 40px; }
 .conversation:empty { display: none; }
 .chat-message { margin-bottom: 36px; }
@@ -125,36 +126,72 @@
 .message-avatar { display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid #dce4df; color: #edf2ef; font-size: 14px; font-weight: 500; }
 .message-label { color: #edf2ef; font-weight: 500; }
 .message-badge { color: var(--ws-muted); font-size: 12px; }
+.message-badge:empty { display: none; }
 .message-content { margin: 0; color: #e0e7e2; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 16px; line-height: 1.9; }
-.chat-message.is-user { width: fit-content; max-width: 88%; margin-left: auto; padding: 19px 24px; border: 1px solid #dce4df70; border-radius: 0; background: #080b0b60; }
-.is-user .message-heading { margin-bottom: 9px; }
+.chat-message.is-user { width: fit-content; max-width: 88%; margin-left: auto; margin-bottom: 28px; padding: 12px 18px; border: 1px solid #ffffff06; border-radius: 20px; background: #1b1f1ee8; }
+.is-user .message-heading { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .is-user .message-label { color: var(--ws-muted); font-size: 13px; }
+.is-user .message-content { color: #cbd3ce; line-height: 1.65; }
 .message-footer { margin-top: 17px; }
 .message-copy { display: inline-flex; align-items: center; gap: 7px; padding: 5px 0; border: 0; background: transparent; color: var(--ws-muted); font-size: 12px; }
 .message-copy .ws-icon { width: 15px; height: 15px; }
 .message-copy:hover { color: #fff; }
 .is-pending .message-content { color: var(--ws-muted); font-size: 14px; }
 .is-pending .message-avatar { animation: demo-pulse 1s ease-in-out infinite alternate; }
+/* 笔记问答使用清晰的比较表与引用，不增加装饰性卡片。 */
+.rag-answer { white-space: normal; font-size: 14px; line-height: 1.8; }
+.rag-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-bottom: 12px; font-size: 12px; }
+.rag-provenance-label { color: var(--ws-green); }
+.rag-status { color: var(--ws-muted); }
+.rag-title { margin: 0 0 12px; color: #edf2ef; font-size: 25px; line-height: 1.4; font-weight: 500; letter-spacing: -.4px; }
+.rag-summary, .rag-clarification { margin: 0 0 18px; color: #c7d0ca; }
+.rag-clarification { padding-left: 12px; border-left: 2px solid var(--ws-green); }
+.rag-comparison { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; }
+.rag-comparison th, .rag-comparison td { padding: 15px 14px; border-top: 1px solid #ffffff26; vertical-align: top; overflow-wrap: anywhere; }
+.rag-comparison thead th { color: var(--ws-muted); font-size: 12px; font-weight: 400; padding-block: 10px; }
+.rag-comparison th:first-child { width: 23%; padding-left: 0; }
+.rag-comparison th:nth-child(2) { width: 42%; }
+.rag-comparison td:last-child, .rag-comparison th:last-child { padding-right: 0; }
+.rag-method { color: #edf2ef; font-weight: 500; }
+.rag-method-name { display: block; margin-bottom: 5px; font-size: 16px; line-height: 1.5; }
+.rag-comparison p { margin: 0; }
+.rag-comparison .rag-code { margin-top: 9px; color: #a7b7ad; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; line-height: 1.8; }
+.rag-citation { padding: 0 3px; border: 0; background: transparent; color: var(--ws-green); font-size: 12px; line-height: 1.8; }
+.rag-citation:hover { color: #fff; text-decoration: underline; }
+.rag-boundary { color: #bbc7bf; }
+.rag-takeaway { margin: 0; padding: 17px 0 0; border-top: 1px solid #ffffff26; color: #e0e7e2; }
+.rag-glossary { margin: 13px 0 18px; color: var(--ws-muted); font-size: 11px; }
+.rag-sources { padding: 12px 0; border-top: 1px solid #ffffff26; border-bottom: 1px solid #ffffff26; color: var(--ws-muted); font-size: 12px; }
+.rag-sources summary { cursor: pointer; overflow-wrap: anywhere; }
+.rag-sources summary:hover { color: #edf2ef; }
+.rag-source-list { margin: 17px 0 0; padding-left: 24px; }
+.rag-source-item { padding: 4px 0 12px 5px; scroll-margin-block: 18px; }
+.rag-source-item::marker { color: var(--ws-green); }
+.rag-source-item h3 { margin: 0 0 5px; color: #d9e2dc; font-size: 13px; font-weight: 500; }
+.rag-source-item p { margin: 0; }
+.rag-source-status { margin: 0; padding-top: 12px; border-top: 1px solid var(--ws-line); }
 .composer-area { flex-shrink: 0; width: min(880px, 100%); margin-inline: auto; padding: 0 40px max(22px, env(safe-area-inset-bottom)); }
-.question-form { padding: 22px 23px 17px; border: 2px solid var(--ws-border); border-radius: 0; background: #080b0b65; transition: border-color .18s; }
-.question-form:hover { border-color: #fff; }
-.question-form:focus-within { border-color: var(--ws-green); }
-#question-input { display: block; width: 100%; min-height: 64px; max-height: 180px; resize: none; padding: 0; border: 0; outline: none; background: transparent; color: #edf2ef; font: inherit; font-size: 18px; line-height: 1.7; overflow-y: auto; }
+.question-form { padding: 14px 18px 12px; border: 1px solid #ffffff12; border-radius: 24px; background: #1b1f1ef2; box-shadow: 0 4px 22px #00000012; transition: border-color .18s, box-shadow .18s; }
+.question-form:hover { border-color: #ffffff20; }
+.question-form:focus-within { border-color: #ffffff38; box-shadow: 0 0 0 1px #ffffff05; }
+#question-input { display: block; width: 100%; min-height: 28px; max-height: 180px; resize: none; padding: 0; border: 0; outline: none; background: transparent; color: #d7ded9; font: inherit; font-size: 16px; line-height: 1.65; overflow-y: auto; }
 #question-input:focus-visible { outline: none; }
-#question-input::placeholder { color: #a4b0a8; }
+#question-input::placeholder { color: #8d9991; }
 #question-input:disabled { cursor: not-allowed; }
-.composer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
-.composer-mode { display: inline-flex; align-items: center; gap: 8px; color: #bbc6bf; font-size: 12px; white-space: nowrap; }
+.composer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
+.composer-mode { display: inline-flex; align-items: center; gap: 8px; color: #99a69e; font-size: 12px; white-space: nowrap; }
 .composer-mode[data-mode="remote"] .status-dot { background: #cbb69c; }
-.composer-controls { display: flex; align-items: center; gap: 18px; }
-.composer-hint { color: #a4ada7; font-size: 11px; }
-.question-send { display: grid; place-items: center; width: 43px; height: 43px; flex-shrink: 0; padding: 0; border: 2px solid var(--ws-green); border-radius: 0; background: var(--ws-green); color: #05140c; }
-.question-send:hover { background: #28e892; border-color: #28e892; }
-.question-send:disabled { opacity: .45; cursor: not-allowed; }
+.composer-controls { display: flex; align-items: center; gap: 14px; }
+.composer-hint { color: #8d9991; font-size: 11px; }
+.question-send { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; padding: 0; border: 0; border-radius: 50%; background: #cbd3ce; color: #161c18; }
+.question-send .ws-icon { width: 20px; height: 20px; }
+.question-send:hover { background: #edf2ef; }
+.question-send:disabled { opacity: 1; background: #343d37; color: #8d9991; cursor: not-allowed; }
 .stop-glyph { display: none; width: 12px; height: 12px; background: currentColor; }
 .question-send[data-busy="true"] .send-glyph { display: none; }
 .question-send[data-busy="true"] .stop-glyph { display: block; }
 .chat-notice { margin: 12px 0 0; color: #a4ada7; font-size: 12px; line-height: 1.7; text-align: center; }
+.chat-notice:empty { display: none; }
 .connection-backdrop { position: absolute; inset: 0; z-index: 11; border: 0; background: #000a; cursor: default; }
 .workspace-toast { position: absolute; bottom: 30px; left: 50%; z-index: 25; max-width: calc(100% - 36px); transform: translateX(-50%); padding: 12px 20px; border: 1px solid var(--ws-border); background: #080b0b; color: #edf2ef; font-size: 14px; }
 .workspace :is(.resume-content, .resume-sidebar, .connection-panel, .conversation-scroll, textarea) { scrollbar-width: thin; scrollbar-color: #6d7770 transparent; }
@@ -210,16 +247,29 @@
   .config-input { font-size: 16px; }
   .chat-empty { padding: 32px 23px; }
   .chat-empty h2 { font-size: 32px; }
+  .demo-question { font-size: 12px; padding: 10px 12px; }
   .conversation { padding: 28px 22px; }
   .message-content { font-size: 15px; }
   .message-heading { gap: 8px; font-size: 12px; }
   .message-badge { font-size: 11px; }
-  .chat-message.is-user { max-width: 95%; padding: 15px 18px; }
+  .chat-message.is-user { max-width: 95%; padding: 10px 14px; border-radius: 18px; }
+  .rag-title { font-size: 22px; }
+  .rag-answer { font-size: 14px; }
+  .rag-provenance { gap: 4px 12px; font-size: 11px; }
+  .rag-comparison, .rag-comparison tbody, .rag-comparison tr, .rag-comparison th, .rag-comparison td { display: block; width: auto; }
+  .rag-comparison thead { display: none; }
+  .rag-comparison tr { padding: 18px 0; border-top: 1px solid #ffffff26; }
+  .rag-comparison th, .rag-comparison td { padding: 0; border: 0; }
+  .rag-comparison th:first-child { width: auto; padding: 0 0 10px; }
+  .rag-method-name { display: inline; margin-right: 8px; }
+  .rag-comparison td + td { margin-top: 12px; }
+  .rag-comparison td::before { content: attr(data-label); display: block; margin-bottom: 4px; color: var(--ws-muted); font-size: 11px; }
+  .rag-glossary { line-height: 1.9; }
   .composer-area { padding: 0 17px max(16px, env(safe-area-inset-bottom)); }
-  .question-form { padding: 16px 15px 13px; }
-  #question-input { font-size: 16px; min-height: 58px; max-height: 120px; }
+  .question-form { padding: 12px 14px 10px; border-radius: 20px; }
+  #question-input { font-size: 16px; min-height: 26px; max-height: 120px; }
   .composer-mode { font-size: 11px; }
-  .question-send { width: 37px; height: 37px; }
+  .question-send { width: 32px; height: 32px; }
   .chat-notice { font-size: 11px; }
 }
 @media (max-width: 350px) {
