@@ -151,7 +151,7 @@
     if (!input.value.trim()) {
       input.setAttribute("aria-invalid", "true");
       field.dataset.invalid = "true";
-      showMessage("请输入访问密钥。");
+      showMessage("请输入网站入口口令。");
       input.focus();
       return;
     }
@@ -165,7 +165,7 @@
       if (hash !== config.accessKeyHash) {
         input.setAttribute("aria-invalid", "true");
         field.dataset.invalid = "true";
-        showMessage("密钥不正确，请再试一次。");
+        showMessage("入口口令不正确。连接知识库的服务密钥请在进入后填写。");
         return;
       }
       if (config.rememberForSession) {

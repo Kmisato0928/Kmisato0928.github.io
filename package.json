@@ -1,0 +1,16 @@
+{
+  "name": "kamisato",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "preview": "node server/preview.js",
+    "server": "node server/index.js",
+    "test": "node --test server/*.test.js tests/*.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^27.4.0"
+  }
+}

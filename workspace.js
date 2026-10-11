@@ -1,3 +1,6 @@
+import { normalizeServiceUrl, connectService, askService } from "./chat-client.js";
+import { renderMarkdown } from "./markdown.js";
+
 (() => {
   "use strict";
 
@@ -7,7 +10,6 @@
   const title = document.querySelector("#workspace-title");
   const resumeContent = document.querySelector("#resume-content");
   const resume = window.KAMISATO_RESUME;
-  const ragDemo = window.KAMISATO_DEMO;
   const mobile = window.matchMedia("(max-width: 760px)");
   const panel = document.querySelector("#connection-panel");
   const panelToggle = document.querySelector("#connection-toggle");
@@ -19,17 +21,20 @@
   const conversation = document.querySelector("#conversation");
   const conversationScroll = document.querySelector("#conversation-scroll");
   const emptyChat = document.querySelector("#chat-empty");
-  const demoQuestion = document.querySelector("#rag-demo-question");
+  const sampleQuestion = document.querySelector("#sample-question");
   const serviceUrl = document.querySelector("#service-url");
   const serviceKey = document.querySelector("#service-key");
   const keyToggle = document.querySelector("#service-key-toggle");
   const connectionMessage = document.querySelector("#connection-message");
+  const connectionSave = document.querySelector("#connection-save");
   const toast = document.querySelector("#workspace-toast");
   let currentView = "resume";
   let currentSection = "overview";
   let panelOpen = !mobile.matches;
   let desktopPanelOpen = panelOpen;
-  let connectionMode = "demo";
+  let connection = null;
+  let connectionController = null;
+  let sessionId = null;
   let pendingReply = null;
   let toastTimer = null;
   let messageSequence = 0;
@@ -213,7 +218,7 @@
 
   function updateSendButton() {
     const busy = Boolean(pendingReply);
-    sendButton.disabled = !busy && (connectionMode !== "demo" || !questionInput.value.trim());
+    sendButton.disabled = !busy && (!connection || !questionInput.value.trim());
     sendButton.dataset.busy = String(busy);
     sendButton.setAttribute("aria-label", busy ? "停止生成回答" : "发送问题");
     questionForm.setAttribute("aria-busy", String(busy));
@@ -228,60 +233,81 @@
 
   function stopReply(markStopped = true) {
     if (!pendingReply) return;
-    clearTimeout(pendingReply.timer);
+    pendingReply.controller.abort();
+    pendingReply.article.classList.remove("is-pending");
     if (markStopped) {
-      pendingReply.article.classList.remove("is-pending");
-      pendingReply.content.textContent = "已停止生成。";
+      renderReply(pendingReply);
+      pendingReply.article.append(element("p", "message-note", "已停止生成。"));
     }
     pendingReply = null;
     conversation.setAttribute("aria-busy", "false");
     updateSendButton();
   }
 
-  function updateMode() {
-    stopReply();
-    const remote = connectionMode === "remote";
+  function updateConnection(state = connection ? "connected" : "offline") {
     const status = document.querySelector("#connection-status");
-    status.dataset.mode = connectionMode;
-    status.lastElementChild.textContent = remote ? "未连接" : "笔记问答";
+    status.dataset.state = state;
+    status.lastElementChild.textContent = connection ? connection.title + " · 已连接" : (state === "connecting" ? "正在连接…" : state === "error" ? "连接失败" : "未连接");
     const mode = document.querySelector("#composer-mode");
-    mode.dataset.mode = connectionMode;
-    mode.replaceChildren(element("span", "status-dot"), document.createTextNode(remote ? "远程 Mac · 未连接" : "项目笔记"));
-    questionInput.disabled = remote;
-    demoQuestion.hidden = remote || !ragDemo;
-    questionInput.placeholder = remote ? "远程服务未连接，请切换笔记问答。" : "输入你的问题…";
-    document.querySelector("#chat-notice").textContent = remote ? "远程服务未连接。" : "";
+    mode.dataset.state = state;
+    mode.replaceChildren(element("span", "status-dot"), document.createTextNode(connection ? connection.title : "知识库未连接"));
+    questionInput.disabled = !connection;
+    questionInput.placeholder = connection ? "根据你的笔记提问…" : "请先连接知识库…";
+    document.querySelector("#chat-notice").textContent = connection ? "" : "打开连接配置，连接 Linux 上的笔记知识库。";
     updateSendButton();
   }
 
-  document.querySelectorAll('[name="connection-mode"]').forEach(input => input.addEventListener("change", () => {
-    connectionMode = input.value;
+  function disconnect() {
+    connectionController?.abort();
+    connectionController = null;
+    stopReply();
+    connection = null;
+    sessionId = null;
+    connectionSave.disabled = false;
     connectionMessage.textContent = "";
-    updateMode();
-  }));
-  document.querySelector("#connection-form").addEventListener("submit", event => {
+    updateConnection();
+  }
+  serviceUrl.addEventListener("input", disconnect);
+  serviceKey.addEventListener("input", disconnect);
+  document.querySelector("#connection-form").addEventListener("submit", async event => {
     event.preventDefault();
-    const address = serviceUrl.value.trim();
-    if (connectionMode === "remote" && !address) {
+    if (!serviceUrl.value.trim()) {
       connectionMessage.textContent = "请填写服务地址。";
       serviceUrl.focus();
       return;
     }
-    if (address) {
-      try {
-        const url = new URL(address);
-        const localHttp = url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
-        if ((url.protocol !== "https:" && !localHttp) || url.username || url.password) throw new Error("Invalid service URL");
-      } catch {
-        connectionMessage.textContent = "请使用 HTTPS 服务地址；本地测试可填写 http://localhost:端口。";
-        serviceUrl.focus();
-        return;
+    if (!serviceKey.value.trim()) {
+      connectionMessage.textContent = "请填写网站服务访问密钥。";
+      serviceKey.focus();
+      return;
+    }
+    disconnect();
+    const controller = new AbortController();
+    connectionController = controller;
+    connectionSave.disabled = true;
+    updateConnection("connecting");
+    connectionMessage.textContent = "正在验证 Linux 服务和知识库连接…";
+    try {
+      const address = normalizeServiceUrl(serviceUrl.value);
+      const key = serviceKey.value.trim();
+      const info = await connectService(address, key, AbortSignal.any([controller.signal, AbortSignal.timeout(20_000)]));
+      if (connectionController !== controller) return;
+      connection = { address, key, title: info.title };
+      serviceUrl.value = address;
+      connectionMessage.textContent = "已连接 " + info.title + "，可以开始提问。";
+      updateConnection();
+      notify("知识库连接成功");
+      if (mobile.matches) setPanel(false);
+    } catch (error) {
+      if (connectionController !== controller) return;
+      connectionMessage.textContent = error.name === "TypeError" ? "无法访问服务，请检查服务地址、Linux 服务状态及跨域配置。" : error.name === "TimeoutError" ? "连接超时，请确认 Linux 服务正在运行。" : error.message;
+      updateConnection("error");
+    } finally {
+      if (connectionController === controller) {
+        connectionController = null;
+        connectionSave.disabled = false;
       }
     }
-    serviceUrl.value = address;
-    // 当前仅搭建前端。配置留在表单内存中，不持久化、不发送网络请求。
-    connectionMessage.textContent = connectionMode === "remote" ? "配置已保存，尚未建立远程连接。" : "已选择笔记问答。";
-    notify("配置已保存到当前页面");
   });
   keyToggle.addEventListener("click", () => {
     const reveal = serviceKey.type === "password";
@@ -322,134 +348,85 @@
     article.append(footer);
   }
 
-  function isRagDemoQuestion(question) {
-    return Boolean(ragDemo) && /shadow[\s_-]*box|shadow\s*空间/i.test(question) && /三种|三条|监控|方案|模式|创建/.test(question);
-  }
-
-  function renderRagDemo(reply, question) {
-    const content = reply.content;
-    const corrected = /创建/.test(question);
-    content.classList.add("rag-answer");
-    content.replaceChildren();
-    reply.article.querySelector(".message-badge").textContent = "笔记问答";
-
-    const provenance = element("div", "rag-provenance");
-    provenance.append(element("span", "rag-provenance-label", "基于项目笔记"), element("span", "rag-status", ragDemo.status));
-    content.append(provenance, element("h2", "rag-title", ragDemo.title));
-    if (corrected) content.append(element("p", "rag-clarification", ragDemo.clarification));
-    content.append(element("p", "rag-summary", ragDemo.summary));
-
-    const sources = element("details", "rag-sources");
-    sources.append(element("summary", "", ragDemo.document + " › " + ragDemo.section + " · 3 个出处"));
+  function renderReply(reply) {
+    const sources = reply.sources || [];
+    let sourceSection;
+    const sourceItems = new Map();
+    const revealCitation = index => {
+      const item = sourceItems.get(index);
+      if (!item) return notify("这条引用没有返回对应的笔记片段。");
+      sourceSection.open = true;
+      item.scrollIntoView({ block: "nearest" });
+    };
+    renderMarkdown(reply.content, reply.answer || "暂未获得回答。", revealCitation);
+    if (!sources.length) return;
+    sourceSection = element("details", "rag-sources");
+    sourceSection.append(element("summary", "", "笔记出处 · " + sources.length + " 个片段"));
     const sourceList = element("ol", "rag-source-list");
-    sources.append(sourceList);
-    const table = element("table", "rag-comparison");
-    table.setAttribute("aria-label", "三种内存监控方案的机制与覆盖边界对比");
-    const head = element("thead");
-    const headings = element("tr");
-    ["监控方案", "触发机制", "覆盖边界"].forEach(text => {
-      const heading = element("th", "", text);
-      heading.scope = "col";
-      headings.append(heading);
+    sources.forEach(source => {
+      const item = element("li", "rag-source-item");
+      item.value = source.index + 1;
+      item.append(element("h3", "", source.document), element("p", "", source.content));
+      sourceItems.set(source.index, item);
+      sourceList.append(item);
     });
-    head.append(headings);
-    const body = element("tbody");
-    table.append(head, body);
-
-    ragDemo.methods.forEach((method, index) => {
-      const number = index + 1;
-      const source = element("li", "rag-source-item");
-      source.id = reply.article.id + "-source-" + number;
-      source.append(element("h3", "", method.source), element("p", "", method.excerpt));
-      sourceList.append(source);
-
-      const row = element("tr");
-      const name = element("th", "rag-method");
-      name.scope = "row";
-      const reference = element("button", "rag-citation", "[" + number + "]");
-      reference.type = "button";
-      reference.setAttribute("aria-label", "查看笔记出处：" + method.source);
-      reference.setAttribute("aria-controls", source.id);
-      reference.addEventListener("click", () => {
-        sources.open = true;
-        source.scrollIntoView({ block: "nearest" });
-      });
-      name.append(element("span", "rag-method-name", method.title), reference);
-      const mechanism = element("td", "rag-mechanism");
-      mechanism.dataset.label = "触发机制";
-      mechanism.append(element("p", "", method.mechanism), element("p", "rag-code", method.examples));
-      const boundary = element("td", "rag-boundary", method.boundary);
-      boundary.dataset.label = "覆盖边界";
-      row.append(name, mechanism, boundary);
-      body.append(row);
-    });
-
-    content.append(table, element("p", "rag-takeaway", ragDemo.takeaway), element("p", "rag-glossary", ragDemo.glossary), sources);
-    sources.append(element("p", "rag-source-status", "章节状态原文：“" + ragDemo.statusEvidence + "”"));
-
-    // 单独提供有段落分隔的复制文本，避免表格 DOM 的 textContent 连成一串。
-    const copyText = [
-      ragDemo.title,
-      ...(corrected ? [ragDemo.clarification] : []),
-      ragDemo.summary,
-      "实现状态：" + ragDemo.status,
-      ...ragDemo.methods.map((method, index) => [
-        (index + 1) + ". " + method.title + " [" + (index + 1) + "]",
-        "触发机制：" + method.mechanism,
-        "示例：" + method.examples,
-        "覆盖边界：" + method.boundary,
-      ].join("\n")),
-      ragDemo.takeaway,
-      ragDemo.glossary,
-      "来源：" + ragDemo.document + " › " + ragDemo.section,
-      ...ragDemo.methods.map((method, index) => "[" + (index + 1) + "] " + method.source + "\n" + method.excerpt),
-      "章节状态原文：“" + ragDemo.statusEvidence + "”",
-    ].join("\n\n");
-    addCopyButton(reply.article, content, copyText);
+    sourceSection.append(sourceList);
+    reply.content.append(sourceSection);
   }
 
-  function demoAnswer(question) {
-    if (/项目|复盘/.test(question)) return "可以按下面五个部分整理项目复盘：\n\n01  背景与目标\n为什么做这个项目？希望解决什么问题？\n\n02  方案与取舍\n采用了什么技术方案？为什么这样选择？\n\n03  你的贡献\n你具体负责什么？解决了哪些关键问题？\n\n04  结果与证据\n展示实际效果，并补充可验证的数据或作品。\n\n05  收获与改进\n哪些方法值得保留？下一次会怎样做得更好？";
-    if (/工作台|介绍|功能/.test(question)) return "这是你的个人问答工作台。\n\n在中间输入问题，回答会显示在当前对话中。支持停止生成、复制回答与新建对话；笔记问答可以展开引用，查看对应的项目笔记内容。\n\n左侧连接配置可以收起，手机上默认隐藏。";
-    return "当前笔记问答收录了 ShadowBox 内存读写监控的专题内容。\n\n可以提问：ShadowBox 的 shadow 空间有哪些内存读写监控方案？请比较触发机制与覆盖边界，并说明实现状态。";
-  }
-
-  function sendQuestion() {
-    if (connectionMode !== "demo" || pendingReply) return;
+  async function sendQuestion() {
+    if (!connection || pendingReply) return;
     const question = questionInput.value.trim();
     if (!question) return;
+    const currentConnection = connection;
     addMessage("user", question);
     questionInput.value = "";
     sizeComposer();
-    const isRagDemo = isRagDemoQuestion(question);
-    const reply = addMessage("assistant", "正在整理回答…");
+    const reply = addMessage("assistant", "正在检索笔记并生成回答…");
     reply.article.classList.add("is-pending");
+    reply.article.querySelector(".message-badge").textContent = currentConnection.title;
     conversation.setAttribute("aria-busy", "true");
-    const job = { article: reply.article, content: reply.content, timer: null };
+    const job = { ...reply, controller: new AbortController(), answer: "", sources: [] };
     pendingReply = job;
-    job.timer = setTimeout(() => {
-      if (pendingReply !== job) return;
-      reply.article.classList.remove("is-pending");
-      if (isRagDemo) renderRagDemo(reply, question);
-      else {
-        reply.content.textContent = demoAnswer(question);
-        addCopyButton(reply.article, reply.content);
-      }
-      pendingReply = null;
-      conversation.setAttribute("aria-busy", "false");
-      updateSendButton();
-      // 笔记回答较长，完成后保留问题和回答开头，便于阅读与截图。
-      if (isRagDemo) reply.article.previousElementSibling.scrollIntoView({ block: "start" });
-      else scrollConversation();
-    }, 1100);
     updateSendButton();
     scrollConversation();
     questionInput.focus();
+    try {
+      await askService(currentConnection.address, currentConnection.key, question, sessionId,
+        job.controller.signal, (event, data) => {
+          if (pendingReply !== job) return;
+          if (event === "session") sessionId = data.session_id;
+          else if (event === "delta" || event === "answer") {
+            job.answer = event === "answer" ? data.text : job.answer + data.text;
+            job.content.textContent = job.answer;
+            job.article.classList.remove("is-pending");
+            scrollConversation();
+          } else if (event === "sources") job.sources = data.sources;
+        });
+      if (pendingReply !== job) return;
+      renderReply(job);
+      addCopyButton(job.article, job.content, job.answer);
+    } catch (error) {
+      if (pendingReply !== job) return;
+      renderReply(job);
+      const message = error.name === "TypeError" ? "连接中断，请确认 Linux 问答服务仍在运行。" : error.message;
+      job.article.append(element("p", "message-note", message));
+      notify(message);
+    } finally {
+      if (pendingReply === job) {
+        job.article.classList.remove("is-pending");
+        pendingReply = null;
+        conversation.setAttribute("aria-busy", "false");
+        updateSendButton();
+        scrollConversation();
+      }
+    }
   }
 
-  demoQuestion.addEventListener("click", () => {
-    if (connectionMode !== "demo" || pendingReply || !ragDemo) return;
-    questionInput.value = ragDemo.question;
+  sampleQuestion.addEventListener("click", () => {
+    if (pendingReply) return;
+    if (!connection) { setPanel(true); return serviceUrl.focus(); }
+    questionInput.value = "ShadowBox 的 shadow 空间有哪些内存读写监控方案？请比较触发机制与覆盖边界，并说明实现状态。";
     sizeComposer();
     updateSendButton();
     questionInput.focus();
@@ -474,7 +451,8 @@
     questionInput.value = "";
     sizeComposer();
     updateSendButton();
-    if (connectionMode === "demo") questionInput.focus();
+    sessionId = null;
+    if (connection) questionInput.focus();
   });
 
   const originalMotion = document.querySelector("#motion-toggle");
@@ -490,7 +468,7 @@
   document.addEventListener("kamisato:access-change", event => {
     if (event.detail.unlocked) setView("resume", false);
     else {
-      stopReply();
+      disconnect();
       serviceKey.value = "";
       serviceKey.type = "password";
       keyToggle.textContent = "显示";
@@ -504,6 +482,8 @@
 
   renderResume(currentSection);
   setView(currentView, false);
-  updateMode();
+  serviceUrl.value = window.KAMISATO_CONFIG?.chatServiceUrl ||
+    (["localhost", "127.0.0.1"].includes(location.hostname) ? "http://localhost:8787" : "");
+  updateConnection();
   syncMotion();
 })();

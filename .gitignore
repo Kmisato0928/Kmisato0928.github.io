@@ -1,0 +1,6 @@
+server/.env
+server/.cloudflared-command
+server/.cloudflared-token
+node_modules/
+test-results/
+playwright-report/

@@ -92,14 +92,9 @@
 .connection-panel { z-index: 12; flex: 0 0 320px; display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 36px 28px; border-right: 1px solid var(--ws-line); background: #080b0be0; }
 .connection-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 30px; }
 .connection-heading h2 { margin: 0; font-size: 22px; font-weight: 500; }
-.connection-mode { display: flex; margin: 0; padding: 0; gap: 9px; border: 0; }
-.connection-mode label { position: relative; flex: 1; text-align: center; cursor: pointer; }
-.connection-mode input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.connection-mode label span { display: block; padding: 10px 4px; border: 1px solid var(--ws-border); color: #edf2ef; font-size: 13px; font-weight: 500; }
-.connection-mode input:checked + span { color: #05140c; border-color: var(--ws-green); background: var(--ws-green); }
-.connection-mode input:focus-visible + span { outline: 2px solid var(--ws-green); outline-offset: 4px; }
+.connection-target { padding: 10px 0; color: var(--ws-green); font-size: 15px; }
 .connection-status { display: flex; align-items: center; gap: 9px; margin: 18px 0 32px; color: #b6c0b9; font-size: 13px; }
-.connection-status[data-mode="remote"] .status-dot { background: #cbb69c; }
+.connection-status:not([data-state="connected"]) .status-dot { background: #cbb69c; }
 .config-label { display: block; margin: 23px 0 11px; color: #edf2ef; font-size: 16px; font-weight: 500; }
 .config-input { display: block; width: 100%; height: 54px; padding: 0 13px; border: 2px solid var(--ws-border); border-radius: 0; background: #080b0b55; color: #edf2ef; font: inherit; font-size: 15px; outline: none; transition: border-color .18s; }
 .config-input::placeholder { color: #9da9a1; font-size: 14px; }
@@ -112,13 +107,14 @@
 .config-secret button:hover { color: var(--ws-green); }
 .config-save { width: 100%; min-height: 52px; justify-content: space-between; padding: 12px 17px; border: 2px solid var(--ws-green); color: #05140c; background: var(--ws-green); font-size: 16px; }
 .config-save:hover { color: #05140c; background: #28e892; border-color: #28e892; }
+.config-save:disabled { opacity: .65; cursor: wait; }
 .connection-message { margin: 16px 0 0; color: #cbb69c; font-size: 13px; line-height: 1.8; }
 .connection-message:empty { display: none; }
 .chat-main { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; }
 .conversation-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .chat-empty { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; width: min(880px, 100%); min-height: 100%; margin: 0 auto; padding: 48px 40px; }
 .chat-empty h2 { margin: 0; color: #edf2ef; font-size: clamp(34px, 4vw, 54px); font-weight: 500; line-height: 1.4; letter-spacing: -1px; }
-.demo-question { max-width: 100%; white-space: normal; text-align: left; }
+.sample-question { max-width: 100%; white-space: normal; text-align: left; }
 .conversation { width: min(880px, 100%); margin: 0 auto; padding: 36px 40px; }
 .conversation:empty { display: none; }
 .chat-message { margin-bottom: 36px; }
@@ -136,31 +132,28 @@
 .message-copy { display: inline-flex; align-items: center; gap: 7px; padding: 5px 0; border: 0; background: transparent; color: var(--ws-muted); font-size: 12px; }
 .message-copy .ws-icon { width: 15px; height: 15px; }
 .message-copy:hover { color: #fff; }
+.message-note { margin: 12px 0 0; color: #cbb69c; font-size: 13px; }
+.chat-answer { white-space: normal; }
+.chat-answer p { margin: 0 0 16px; white-space: pre-wrap; }
+.chat-answer :is(h2, h3, h4, h5, h6) { margin: 24px 0 14px; color: #edf2ef; font-weight: 500; line-height: 1.5; }
+.chat-answer h2 { font-size: 23px; }
+.chat-answer h3 { font-size: 20px; }
+.chat-answer :is(ul, ol) { margin: 0 0 18px; padding-left: 26px; }
+.chat-answer li { margin-bottom: 8px; }
+.chat-answer code { padding: 2px 5px; border-radius: 3px; background: #ffffff0b; font: .9em ui-monospace, SFMono-Regular, Consolas, monospace; }
+.chat-answer pre { max-width: 100%; overflow-x: auto; padding: 16px; border: 1px solid var(--ws-line); background: #080b0b99; white-space: pre; }
+.chat-answer pre code { padding: 0; background: none; line-height: 1.7; }
+.chat-answer a { color: var(--ws-green); }
+.chat-answer blockquote { margin: 16px 0; padding-left: 15px; border-left: 2px solid var(--ws-green); color: var(--ws-muted); }
+.chat-answer hr { margin: 22px 0; border: 0; border-top: 1px solid var(--ws-line); }
+.chat-table { max-width: 100%; overflow-x: auto; margin-bottom: 20px; }
+.chat-table table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.chat-table :is(td, th) { padding: 12px; border-bottom: 1px solid var(--ws-line); vertical-align: top; }
+.chat-table th { color: var(--ws-muted); font-weight: 500; }
 .is-pending .message-content { color: var(--ws-muted); font-size: 14px; }
-.is-pending .message-avatar { animation: demo-pulse 1s ease-in-out infinite alternate; }
-/* 笔记问答使用清晰的比较表与引用，不增加装饰性卡片。 */
-.rag-answer { white-space: normal; font-size: 14px; line-height: 1.8; }
-.rag-provenance { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-bottom: 12px; font-size: 12px; }
-.rag-provenance-label { color: var(--ws-green); }
-.rag-status { color: var(--ws-muted); }
-.rag-title { margin: 0 0 12px; color: #edf2ef; font-size: 25px; line-height: 1.4; font-weight: 500; letter-spacing: -.4px; }
-.rag-summary, .rag-clarification { margin: 0 0 18px; color: #c7d0ca; }
-.rag-clarification { padding-left: 12px; border-left: 2px solid var(--ws-green); }
-.rag-comparison { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; }
-.rag-comparison th, .rag-comparison td { padding: 15px 14px; border-top: 1px solid #ffffff26; vertical-align: top; overflow-wrap: anywhere; }
-.rag-comparison thead th { color: var(--ws-muted); font-size: 12px; font-weight: 400; padding-block: 10px; }
-.rag-comparison th:first-child { width: 23%; padding-left: 0; }
-.rag-comparison th:nth-child(2) { width: 42%; }
-.rag-comparison td:last-child, .rag-comparison th:last-child { padding-right: 0; }
-.rag-method { color: #edf2ef; font-weight: 500; }
-.rag-method-name { display: block; margin-bottom: 5px; font-size: 16px; line-height: 1.5; }
-.rag-comparison p { margin: 0; }
-.rag-comparison .rag-code { margin-top: 9px; color: #a7b7ad; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; line-height: 1.8; }
+.is-pending .message-avatar { animation: chat-pulse 1s ease-in-out infinite alternate; }
 .rag-citation { padding: 0 3px; border: 0; background: transparent; color: var(--ws-green); font-size: 12px; line-height: 1.8; }
 .rag-citation:hover { color: #fff; text-decoration: underline; }
-.rag-boundary { color: #bbc7bf; }
-.rag-takeaway { margin: 0; padding: 17px 0 0; border-top: 1px solid #ffffff26; color: #e0e7e2; }
-.rag-glossary { margin: 13px 0 18px; color: var(--ws-muted); font-size: 11px; }
 .rag-sources { padding: 12px 0; border-top: 1px solid #ffffff26; border-bottom: 1px solid #ffffff26; color: var(--ws-muted); font-size: 12px; }
 .rag-sources summary { cursor: pointer; overflow-wrap: anywhere; }
 .rag-sources summary:hover { color: #edf2ef; }
@@ -169,7 +162,6 @@
 .rag-source-item::marker { color: var(--ws-green); }
 .rag-source-item h3 { margin: 0 0 5px; color: #d9e2dc; font-size: 13px; font-weight: 500; }
 .rag-source-item p { margin: 0; }
-.rag-source-status { margin: 0; padding-top: 12px; border-top: 1px solid var(--ws-line); }
 .composer-area { flex-shrink: 0; width: min(880px, 100%); margin-inline: auto; padding: 0 40px max(22px, env(safe-area-inset-bottom)); }
 .question-form { padding: 14px 18px 12px; border: 1px solid #ffffff12; border-radius: 24px; background: #1b1f1ef2; box-shadow: 0 4px 22px #00000012; transition: border-color .18s, box-shadow .18s; }
 .question-form:hover { border-color: #ffffff20; }
@@ -180,7 +172,7 @@
 #question-input:disabled { cursor: not-allowed; }
 .composer-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; }
 .composer-mode { display: inline-flex; align-items: center; gap: 8px; color: #99a69e; font-size: 12px; white-space: nowrap; }
-.composer-mode[data-mode="remote"] .status-dot { background: #cbb69c; }
+.composer-mode:not([data-state="connected"]) .status-dot { background: #cbb69c; }
 .composer-controls { display: flex; align-items: center; gap: 14px; }
 .composer-hint { color: #8d9991; font-size: 11px; }
 .question-send { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; padding: 0; border: 0; border-radius: 50%; background: #cbd3ce; color: #161c18; }
@@ -195,7 +187,7 @@
 .connection-backdrop { position: absolute; inset: 0; z-index: 11; border: 0; background: #000a; cursor: default; }
 .workspace-toast { position: absolute; bottom: 30px; left: 50%; z-index: 25; max-width: calc(100% - 36px); transform: translateX(-50%); padding: 12px 20px; border: 1px solid var(--ws-border); background: #080b0b; color: #edf2ef; font-size: 14px; }
 .workspace :is(.resume-content, .resume-sidebar, .connection-panel, .conversation-scroll, textarea) { scrollbar-width: thin; scrollbar-color: #6d7770 transparent; }
-@keyframes demo-pulse { to { opacity: .4; } }
+@keyframes chat-pulse { to { opacity: .4; } }
 
 @media (max-width: 1100px) {
   .resume-sidebar { flex-basis: 216px; padding-inline: 14px; }
@@ -247,7 +239,7 @@
   .config-input { font-size: 16px; }
   .chat-empty { padding: 32px 23px; }
   .chat-empty h2 { font-size: 32px; }
-  .demo-question { font-size: 12px; padding: 10px 12px; }
+  .sample-question { font-size: 12px; padding: 10px 12px; }
   .conversation { padding: 28px 22px; }
   .message-content { font-size: 15px; }
   .message-heading { gap: 8px; font-size: 12px; }

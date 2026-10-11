@@ -1,0 +1,74 @@
+name: kamisato
+services:
+  preview:
+    image: node:24-alpine
+    user: "1000:1000"
+    working_dir: /app
+    command: ["node", "server/preview.js"]
+    environment:
+      PREVIEW_HOST: 0.0.0.0
+    volumes:
+      - ../:/app:ro
+    ports:
+      - "127.0.0.1:8088:8088"
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+  gateway:
+    image: node:24-alpine
+    user: "1000:1000"
+    working_dir: /app
+    command: ["node", "server/index.js"]
+    env_file: .env
+    environment:
+      RAGFLOW_BASE_URL: http://ragflow-cpu:9380
+      HOST: 0.0.0.0
+    volumes:
+      - ../:/app:ro
+    ports:
+      - "127.0.0.1:8787:8787"
+    networks:
+      - ragflow
+      - tunnel
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  cloudflared:
+    image: cloudflare/cloudflared:2026.10.0
+    profiles: [public]
+    user: "1000:1000"
+    command: ["tunnel", "--no-autoupdate", "--protocol", "http2", "--metrics", "0.0.0.0:2000", "run", "--token-file", "/run/secrets/tunnel_token"]
+    secrets:
+      - tunnel_token
+    networks:
+      - tunnel
+    depends_on:
+      gateway:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+networks:
+  ragflow:
+    external: true
+    name: docker_ragflow
+  tunnel:
+secrets:
+  tunnel_token:
+    file: .cloudflared-token

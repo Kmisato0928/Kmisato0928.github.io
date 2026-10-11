@@ -8,12 +8,11 @@
     <title>KAMISATO — Welcome</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css?v=2" />
-    <link rel="stylesheet" href="workspace.css?v=6" />
-    <script src="site.config.js" defer></script>
-    <script src="script.js?v=3" defer></script>
+    <link rel="stylesheet" href="workspace.css?v=7" />
+    <script src="site.config.js?v=2" defer></script>
+    <script src="script.js?v=4" defer></script>
     <script src="resume.data.js?v=3" defer></script>
-    <script src="demo.data.js?v=1" defer></script>
-    <script src="workspace.js?v=5" defer></script>
+    <script src="workspace.js?v=6" type="module"></script>
   </head>
   <body>
     <canvas id="pixel-field" aria-hidden="true"></canvas>
@@ -36,16 +35,16 @@
 
         <section class="entry" aria-labelledby="entry-label">
           <form id="access-form" novalidate>
-            <label id="entry-label" class="entry-label" for="access-key">输入密钥，进入空间。</label>
+            <label id="entry-label" class="entry-label" for="access-key">输入入口口令，进入空间。</label>
             <div class="key-row">
               <div class="key-field">
                 <svg class="lock-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5" />
                   <path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
                 </svg>
-                <input id="access-key" name="access-key" type="password" placeholder="输入你的访问密钥" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="256" required aria-describedby="entry-hint form-message" />
+                <input id="access-key" name="access-key" type="password" placeholder="输入网站入口口令" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="256" required aria-describedby="entry-hint form-message" />
               </div>
-              <button class="enter-button" type="submit" aria-label="验证密钥并进入">
+              <button class="enter-button" type="submit" aria-label="验证入口口令并进入">
                 <span class="enter-label">进入</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -131,15 +130,15 @@
           <aside id="connection-panel" class="connection-panel" aria-label="连接配置">
             <div class="connection-heading"><h2>连接配置</h2><button id="connection-close" type="button" class="ws-icon-button" aria-label="收起连接配置"><svg class="ws-icon" aria-hidden="true"><use href="#icon-close"/></svg></button></div>
             <form id="connection-form" class="connection-form">
-              <fieldset class="connection-mode"><legend class="visually-hidden">连接方式</legend><label><input type="radio" name="connection-mode" value="demo" checked/><span>笔记问答</span></label><label><input type="radio" name="connection-mode" value="remote"/><span>远程 Mac</span></label></fieldset>
-              <div id="connection-status" class="connection-status" role="status"><span class="status-dot"></span><span>笔记问答</span></div>
+              <div class="connection-target">Linux · 笔记知识库</div>
+              <div id="connection-status" class="connection-status" data-state="offline" role="status"><span class="status-dot"></span><span>未连接</span></div>
               <label class="config-label" for="service-url">服务地址</label>
               <input id="service-url" class="config-input" type="url" placeholder="https://api.kamisato.me" autocomplete="off" spellcheck="false" autocapitalize="off" aria-describedby="service-url-hint"/>
-              <p id="service-url-hint" class="visually-hidden">填写远程 Mac 服务的 HTTPS 地址。</p>
-              <label class="config-label" for="service-key">访问密钥</label>
-              <div class="config-secret"><input id="service-key" class="config-input" type="password" placeholder="输入服务访问密钥" autocomplete="off" spellcheck="false" autocapitalize="off"/><button id="service-key-toggle" type="button" aria-label="显示访问密钥" aria-pressed="false">显示</button></div>
-              <p class="config-hint">密钥刷新后清除。</p>
-              <button class="ws-button config-save" type="submit">保存配置<svg class="ws-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+              <p id="service-url-hint" class="config-hint">默认使用公网 HTTPS 问答服务；本机直连测试可填写 http://localhost:8787。</p>
+              <label class="config-label" for="service-key">网站服务密钥</label>
+              <div class="config-secret"><input id="service-key" class="config-input" type="password" placeholder="输入网站服务访问密钥" autocomplete="off" spellcheck="false" autocapitalize="off"/><button id="service-key-toggle" type="button" aria-label="显示访问密钥" aria-pressed="false">显示</button></div>
+              <p class="config-hint">服务密钥仅用于连接，不是模型 API Key。刷新后清除。</p>
+              <button id="connection-save" class="ws-button config-save" type="submit">连接知识库<svg class="ws-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
               <p id="connection-message" class="connection-message" role="status" aria-live="polite"></p>
             </form>
           </aside>
@@ -148,14 +147,14 @@
             <div id="conversation-scroll" class="conversation-scroll">
               <div id="chat-empty" class="chat-empty">
                 <h2>输入你的问题。</h2>
-                <button id="rag-demo-question" class="ws-button demo-question" type="button" title="使用这个问题"><span>ShadowBox · 内存读写监控</span><svg class="ws-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+                <button id="sample-question" class="ws-button sample-question" type="button" title="使用这个问题"><span>ShadowBox · 内存读写监控</span><svg class="ws-icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
               </div>
               <div id="conversation" class="conversation" role="log" aria-label="问题与回答" aria-live="polite" aria-relevant="additions text"></div>
             </div>
             <div class="composer-area">
               <form id="question-form" class="question-form">
-                <label class="visually-hidden" for="question-input">输入问题</label><textarea id="question-input" rows="1" placeholder="输入你的问题…" maxlength="6000" aria-describedby="composer-hint"></textarea>
-                <div class="composer-toolbar"><span id="composer-mode" class="composer-mode"><span class="status-dot"></span>项目笔记</span><div class="composer-controls"><span id="composer-hint" class="composer-hint">Enter 发送 · Shift + Enter 换行</span><button id="question-send" type="submit" class="question-send" aria-label="发送问题" disabled><svg class="ws-icon send-glyph" aria-hidden="true"><use href="#icon-send"/></svg><span class="stop-glyph" aria-hidden="true"></span></button></div></div>
+                <label class="visually-hidden" for="question-input">输入问题</label><textarea id="question-input" rows="1" placeholder="请先连接知识库…" maxlength="6000" aria-describedby="composer-hint" disabled></textarea>
+                <div class="composer-toolbar"><span id="composer-mode" class="composer-mode"><span class="status-dot"></span>知识库未连接</span><div class="composer-controls"><span id="composer-hint" class="composer-hint">Enter 发送 · Shift + Enter 换行</span><button id="question-send" type="submit" class="question-send" aria-label="发送问题" disabled><svg class="ws-icon send-glyph" aria-hidden="true"><use href="#icon-send"/></svg><span class="stop-glyph" aria-hidden="true"></span></button></div></div>
               </form>
               <p id="chat-notice" class="chat-notice" role="status"></p>
             </div>
